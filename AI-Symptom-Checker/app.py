@@ -2,14 +2,15 @@ from flask import Flask, request, render_template
 import numpy as np
 import joblib
 import pandas as pd
+import os
 
 app = Flask(__name__)
-app.secret_key = 'x7k9p2m4q8r5t1n3j6h0'  # Random secret key daali
+app.secret_key = 'x7k9p2m4q8r5t1n3j6h0'  # Random secret key (production mein secure key use karo)
 
 # Load model, encoder, and CSV locally
-model = joblib.load("symptom_checker_model.pkl")
-mlb = joblib.load("mlb_encoder.pkl")
-df = pd.read_csv("DiseaseAndSymptoms.csv")
+model = joblib.load(os.path.join(os.path.dirname(__file__), "symptom_checker_model.pkl"))
+mlb = joblib.load(os.path.join(os.path.dirname(__file__), "mlb_encoder.pkl"))
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), "DiseaseAndSymptoms.csv"))
 
 # Symptom columns define karo
 symptom_columns = [f"Symptom_{i}" for i in range(1, 18)]
@@ -58,4 +59,4 @@ def home():
     return render_template("index.html", categories=symptom_categories, selected_symptoms=selected_symptoms)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
