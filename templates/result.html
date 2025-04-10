@@ -6,7 +6,6 @@
     <title>Result - Symptom Checker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Light mode (default) */
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
@@ -17,6 +16,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            position: relative;
             overflow: hidden;
             transition: background 0.3s, color 0.1s;
         }
@@ -37,6 +37,17 @@
             border-radius: 10px 10px 0 0;
             margin: -30px -30px 20px -30px;
             transition: background 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            margin: 0 auto;
+            font-size: 24px;
+            position: relative;
+            left: 0;
+            transform: none;
         }
         .result-card {
             background: #f9f9f9;
@@ -45,8 +56,6 @@
             border: 2px solid #3498db;
             transition: background 0.3s, border-color 0.3s;
         }
-
-        /* Dark mode */
         [data-theme="dark"] body {
             background: linear-gradient(135deg, #1e2a44, #2c3e50);
             color: #e0e0e0;
@@ -78,8 +87,12 @@
         [data-theme="dark"] .back-btn:hover {
             color: #e0e0e0;
         }
-
-        /* Rest of the styles */
+        [data-theme="dark"] .search-icon {
+            color: #1e90ff;
+        }
+        [data-theme="dark"] .search-icon:hover {
+            color: #187bcd;
+        }
         .back-btn {
             position: absolute;
             top: 13px;
@@ -92,9 +105,11 @@
         .back-btn:hover {
             color: #ffffff;
         }
-        h1 {
-            margin: 0;
-            font-size: 24px;
+        .prediction-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         .prediction {
             color: #e74c3c;
@@ -102,6 +117,16 @@
             font-weight: bold;
             margin: 15px 0;
             transition: color 0.1s;
+        }
+        .search-icon {
+            font-size: 16px;
+            color: #3498db;
+            cursor: pointer;
+            transition: transform 0.3s, color 0.3s;
+        }
+        .search-icon:hover {
+            transform: scale(1.2);
+            color: #2980b9;
         }
         .note {
             font-size: 14px;
@@ -134,40 +159,70 @@
             margin-top: 10px;
             transition: color 0.1s;
         }
+        @media (max-width: 600px) {
+            body, .container, .header {
+                padding: 10px;
+            }
+            .header {
+                margin: -10px -10px 20px -10px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .prediction {
+                font-size: 24px;
+            }
+            .back-btn {
+                left: 15px;
+            }
+        }
     </style>
     <script>
-        // Apply saved theme immediately before DOM loads
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let savedTheme = localStorage.getItem('theme');
+        if (!savedTheme) {
+            savedTheme = prefersDarkScheme ? 'dark' : 'light';
+            localStorage.setItem('theme', savedTheme);
+        }
         document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-</head>
-<body>
-    <div class="container">
-        <i class="fas fa-arrow-left back-btn" onclick="goBack()"></i>
-        <div class="header">
-            <h1>Diagnosis Result</h1>
-        </div>
-        <div class="result-card">
-            <i class="fas fa-stethoscope icon-result"></i>
-            <p>Possible Condition:</p>
-            <div class="prediction">{{ prediction }}</div>
-            {% if others %}
-                <p class="others"><strong>Other Possibilities:</strong> {{ others|join(', ') }}</p>
-            {% endif %}
-            <p class="note"><em>Note: This is an AI-based prediction. Consult a doctor for a proper diagnosis.</em></p>
-            <a href="/" onclick="resetSelections()">Check Again</a>
-        </div>
-    </div>
 
-    <script>
         function goBack() {
             window.location.href = '/';
         }
 
-        function resetSelections() {
-            localStorage.removeItem('selectedSymptoms');
+        function checkAgain() {
             localStorage.removeItem('scrollPosition');
+            localStorage.removeItem('selectedSymptoms');
+            console.log('Selections reset on Check Again');
+            window.location.href = '/';
+        }
+
+        function searchDisease(disease) {
+            const url = `https://www.google.com/search?q=${encodeURIComponent(disease)}`;
+            window.open(url, '_blank');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92d054584ee2836e',t:'MTc0NDEwMDI1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92d077254fa27f2e',t:'MTc0NDEwMTY4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBack()"></i>
+            <h1>Diagnosis Result</h1>
+            <div class="icon-container"></div>
+        </div>
+        <div class="result-card">
+            <i class="fas fa-stethoscope icon-result"></i>
+            <p>Possible Condition:</p>
+            <div class="prediction-container">
+                <div class="prediction">{{ prediction }}</div>
+                <i class="fas fa-search-plus search-icon" onclick="searchDisease('{{ prediction }}')"></i>
+            </div>
+            {% if others %}
+                <p class="others"><strong>Other Possibilities:</strong> {{ others|join(', ') }}</p>
+            {% endif %}
+            <p class="note"><em>Note: This is an AI-based prediction. Consult a doctor for a proper diagnosis.</em></p>
+            <a href="/" onclick="checkAgain()">Check Again</a>
+        </div>
+    </div>
+</body>
 </html>
