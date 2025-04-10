@@ -6,14 +6,15 @@
     <title>Symptom Checker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Light mode (default) */
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
             margin: 0;
             padding: 20px;
             color: #333;
-            overflow: hidden;
+            position: relative;
+            height: auto;
+            overflow: auto;
             transition: background 0.3s, color 0.1s;
         }
         .container {
@@ -28,7 +29,7 @@
         }
         .header {
             background: linear-gradient(90deg, #3498db, #2ecc71);
-            padding: 15px 15px 15px 0;
+            padding: 15px 0;
             border-radius: 8px 8px 0 0;
             text-align: center;
             color: #fff;
@@ -59,8 +60,6 @@
             gap: 10px;
             transition: background 0.3s;
         }
-
-        /* Dark mode */
         [data-theme="dark"] body {
             background: linear-gradient(135deg, #1e2a44, #2c3e50);
             color: #e0e0e0;
@@ -109,11 +108,45 @@
         [data-theme="dark"] .scroll-to-top:hover {
             background: #187bcd;
         }
-
-        /* Rest of the styles */
+        [data-theme="dark"] .note {
+            color: #ff6b6b;
+        }
+        [data-theme="dark"] .feedback-popup {
+            background: linear-gradient(135deg, #1e90ff, #00cc99);
+        }
+        [data-theme="dark"] .feedback-popup h3 {
+            color: #fff;
+        }
+        [data-theme="dark"] .feedback-popup input[type="text"],
+        [data-theme="dark"] .feedback-popup input[type="email"],
+        [data-theme="dark"] .feedback-popup textarea {
+            background: #34495e;
+            color: #e0e0e0;
+            border-color: #1e90ff;
+        }
+        [data-theme="dark"] .feedback-popup input[type="submit"] {
+            background: #fff;
+            color: #00cc99;
+        }
+        [data-theme="dark"] .feedback-popup input[type="submit"]:hover {
+            background: #00cc99;
+            color: #fff;
+        }
+        [data-theme="dark"] .success-message {
+            background: #27ae60;
+        }
+        [data-theme="dark"] .error-message {
+            background: #e74c3c;
+        }
+        [data-theme="dark"] .connect-line {
+            color: #fff;
+        }
+        [data-theme="dark"] .social-icons a {
+            color: #fff;
+        }
         .header .logo {
             font-size: 50px;
-            margin-left: 20px;
+            margin-left: 10px;
         }
         .header .title-container {
             position: absolute;
@@ -125,17 +158,22 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .header .theme-toggle {
-            font-size: 24px;
+        .header .icon-container {
+            display: flex;
+            align-items: center;
             margin-right: 20px;
+        }
+        .header .theme-toggle, .header .feedback-icon {
+            font-size: 24px;
+            margin-left: 10px;
             cursor: pointer;
             transition: transform 0.3s;
             position: relative;
         }
-        .header .theme-toggle:hover {
+        .header .theme-toggle:hover, .header .feedback-icon:hover {
             transform: scale(1.2);
         }
-        .header .theme-toggle::after {
+        .header .theme-toggle::after, .header .feedback-icon::after {
             content: attr(data-tooltip);
             position: absolute;
             top: 50%;
@@ -152,7 +190,7 @@
             transition: opacity 0.2s;
             margin-right: 5px;
         }
-        .header .theme-toggle:hover::after {
+        .header .theme-toggle:hover::after, .header .feedback-icon:hover::after {
             opacity: 1;
         }
         h1 {
@@ -282,12 +320,10 @@
             margin-bottom: 10px;
             transition: color 0.1s;
         }
-
-        /* Scroll-to-top button */
         .scroll-to-top {
             position: fixed;
-            left: calc(50% - 500px + 10px); /* Left edge of container + 10px */
-            bottom: 20px; /* Fixed at bottom */
+            left: calc(50% - 500px + 10px);
+            bottom: 20px;
             background: #3498db;
             color: #fff;
             width: 40px;
@@ -301,7 +337,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s, background 0.3s;
-            z-index: 1000;
+            z-index: 999;
         }
         .scroll-to-top.visible {
             opacity: 1;
@@ -310,40 +346,334 @@
         .scroll-to-top:hover {
             background: #2980b9;
         }
-        @media (max-width: 1020px) { /* Adjust for container width + padding */
+        @media (max-width: 1020px) {
             .scroll-to-top {
-                left: 30px; /* Fallback for smaller screens */
+                left: 30px;
             }
         }
-
         @media (max-width: 600px) {
+            body, .container, .header {
+                padding: 10px;
+            }
+            .header {
+                margin: -10px -10px 20px -10px;
+                min-height: 60px;
+            }
+            .symptom-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
             h1 { font-size: 22px; }
             .tagline { font-size: 12px; }
-            .header .logo { font-size: 30px; }
+            .header .logo {
+                font-size: 45px;
+            }
+            .header .theme-toggle, .header .feedback-icon {
+                font-size: 22px; /* Mobile view mein size 22px */
+            }
+            .header .icon-container {
+                margin-right: 10px;
+            }
         }
         @media (max-width: 400px) {
             h1 { font-size: 18px; }
             .tagline { font-size: 10px; }
-            .header .logo { font-size: 26px; }
+            .header .logo { font-size: 40px; }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        .feedback-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 15px rgba(52, 152, 219, 0.5);
+            z-index: 1001;
+            text-align: center;
+            min-width: 350px;
+            max-width: 450px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .feedback-popup.active {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            animation: bounceIn 0.5s ease;
+        }
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .overlay.active {
+            display: block;
+        }
+        .feedback-popup h3 {
+            margin: 0 0 20px 0;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .connect-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            color: #fff;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .social-icons {
+            display: flex;
+            gap: 10px;
+        }
+        .social-icons a {
+            font-size: 20px; /* Feedback popup mein icons ka size 20px */
+            color: #fff;
+            transition: transform 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .social-icons a:hover {
+            transform: scale(1.2) translateY(-3px);
+        }
+        .note {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: color 0.1s;
+            font-style: italic;
+        }
+        .blink {
+            animation: blink 0.5s ease-in-out 6 alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .analyzing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-in;
+        }
+        .analyzing-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(52, 152, 219, 0.8);
+            text-align: center;
+            color: #fff;
+            z-index: 2001;
+            animation: popIn 0.5s ease-out;
+            min-width: 300px;
+        }
+        .analyzing-box.active {
+            display: block;
+        }
+        .analyzing-overlay.active {
+            display: block;
+        }
+        .analyzing-box i {
+            font-size: 50px;
+            margin-bottom: 20px;
+            animation: spinGlow 1.5s linear infinite;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        .analyzing-box p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            animation: textFade 1s infinite alternate;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            80% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes spinGlow {
+            0% { transform: rotate(0deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+            50% { text-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+            100% { transform: rotate(360deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+        }
+        @keyframes textFade {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .feedback-popup input[type="text"],
+        .feedback-popup input[type="email"],
+        .feedback-popup textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            margin-bottom: 15px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .feedback-popup input[type="text"]:focus,
+        .feedback-popup input[type="email"]:focus,
+        .feedback-popup textarea:focus {
+            border-color: #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+        }
+        .feedback-popup textarea {
+            height: 120px;
+            resize: none;
+        }
+        .feedback-popup input[type="submit"] {
+            background: #fff;
+            color: #3498db;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s, color 0.3s, transform 0.2s;
+        }
+        .feedback-popup input[type="submit"]:hover {
+            background: #2ecc71;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .success-message.active {
+            display: block;
+            opacity: 1;
+        }
+        .error-message {
+            display: none;
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .error-message.active {
+            display: block;
+            opacity: 1;
         }
     </style>
     <script>
-        // Apply saved theme immediately before DOM loads
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        // Apply theme instantly before page render
+        (function() {
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let savedTheme = localStorage.getItem('theme');
+            if (!savedTheme) {
+                savedTheme = prefersDarkScheme ? 'dark' : 'light';
+                localStorage.setItem('theme', savedTheme);
+            }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
     </script>
 </head>
 <body>
+    <div id="overlay" class="overlay"></div>
+    <div id="analyzing-overlay" class="analyzing-overlay"></div>
+    <div id="analyzing-box" class="analyzing-box">
+        <i class="fas fa-heartbeat"></i>
+        <p>Analyzing Health Data</p>
+    </div>
+    <div id="success-message" class="success-message">
+        Submit Successful! Thank you for your feedback!
+    </div>
+    <div id="error-message" class="error-message">
+        Error: Please fill all fields!
+    </div>
     <div class="container">
         <div class="header">
             <i class="fas fa-heartbeat logo"></i>
             <div class="title-container">
-                <h1>AI Symptom Checker</h1>
+                <h1>Symptom Checker</h1>
                 <div class="tagline">Your Health, Simplified</div>
             </div>
-            <i id="theme-toggle" class="fas fa-moon theme-toggle" onclick="toggleTheme()" data-tooltip="Switch to Dark Mode"></i>
+            <div class="icon-container">
+                <i class="fas fa-comment feedback-icon" onclick="toggleFeedback(event)" data-tooltip="Give Feedback"></i>
+                <i id="theme-toggle" class="fas fa-moon theme-toggle" onclick="toggleTheme()" data-tooltip="Switch to Dark Mode"></i>
+            </div>
         </div>
-        <form method="POST" id="symptom-form">
+        <div id="feedback-popup" class="feedback-popup">
+            <h3>Share Your Feedback</h3>
+            <form method="POST" id="feedback-form">
+                <input type="hidden" name="feedback-form" value="true">
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <textarea name="feedback" placeholder="Your feedback here..." required></textarea>
+                <input type="submit" value="Submit Feedback">
+            </form>
+            <div class="connect-line">
+                <span>Join me on</span>
+                <div class="social-icons">
+                    <a href="https://github.com/ShubhamAIML" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://www.kaggle.com/shubham1921" target="_blank"><i class="fab fa-kaggle"></i></a>
+                    <a href="https://www.linkedin.com/in/shubham-kumar-016b6816b/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <form method="POST" id="symptom-form" action="/">
+            <input type="hidden" name="symptom-form" value="true">
+            <div id="note" class="note">Note: Please select at least 3 symptoms</div>
             {% if error %}
                 <div class="error">{{ error }}</div>
             {% endif %}
@@ -413,25 +743,78 @@
             </div>
         </form>
     </div>
-
-    <!-- Scroll-to-top button -->
     <div id="scroll-to-top" class="scroll-to-top" onclick="scrollToTop()">
         <i class="fa-solid fa-angle-up"></i>
     </div>
-
-    <!-- Scroll restoration script -->
     <script>
+        // Save scroll position before refresh or unload
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('scrollPosition', window.scrollY);
+        });
+
+        // Restore scroll position and selections on load, handle success/error messages
         document.addEventListener('DOMContentLoaded', function() {
             const scrollPosition = localStorage.getItem('scrollPosition');
-            if (scrollPosition && performance.navigation.type !== 1) {
-                window.scrollTo(0, parseInt(scrollPosition));
-            }
             document.body.style.overflow = 'auto';
-        });
-    </script>
 
-    <script>
-        // Theme toggle function
+            if (performance.navigation.type === 1) {
+                localStorage.removeItem('selectedSymptoms');
+                console.log('Selections reset on page refresh');
+            }
+
+            let storedSymptoms = JSON.parse(localStorage.getItem('selectedSymptoms')) || [];
+            console.log('Stored Symptoms on Load:', storedSymptoms);
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = storedSymptoms.includes(checkbox.value);
+            });
+            updateSelected();
+
+            if (scrollPosition) {
+                window.scrollTo({
+                    top: parseInt(scrollPosition),
+                    behavior: 'instant'
+                });
+            }
+
+            // Success message ko handle karo
+            const feedbackSubmitted = {{ feedback_submitted | tojson }};
+            if (feedbackSubmitted) {
+                const successMessage = document.getElementById('success-message');
+                successMessage.classList.add('active');
+                setTimeout(() => {
+                    successMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        successMessage.classList.remove('active');
+                    }, 500); // Transition duration ke baad hide
+                }, 3000); // 3 seconds dikhega
+            }
+
+            // Error message ko handle karo
+            const feedbackError = {{ feedback_error | tojson }};
+            if (feedbackError) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.classList.add('active');
+                setTimeout(() => {
+                    errorMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        errorMessage.classList.remove('active');
+                    }, 500); // Transition duration ke baad hide
+                }, 3000); // 3 seconds dikhega
+            }
+
+            updateToggleIconAndTooltip(document.documentElement.getAttribute('data-theme'));
+            document.addEventListener('click', handleOutsideClick);
+        });
+
+        function handleOutsideClick(event) {
+            const feedbackPopup = document.getElementById('feedback-popup');
+            const feedbackIcon = document.querySelector('.feedback-icon');
+            if (feedbackPopup.classList.contains('active') && !feedbackPopup.contains(event.target) && event.target !== feedbackIcon) {
+                closeFeedback();
+            }
+        }
+
         function toggleTheme() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
@@ -441,7 +824,6 @@
             updateToggleIconAndTooltip(newTheme);
         }
 
-        // Update toggle icon and tooltip based on theme
         function updateToggleIconAndTooltip(theme) {
             const toggle = document.getElementById('theme-toggle');
             if (theme === 'dark') {
@@ -455,18 +837,12 @@
             }
         }
 
-        // Load saved theme and set initial icon/tooltip
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateToggleIconAndTooltip(savedTheme);
-        });
-
         function updateSelected() {
             const selectedBar = document.getElementById('selected-bar');
             const selectedHeading = document.getElementById('selected-heading');
             const submitBtn = document.getElementById('submit-btn');
             const resetBtn = document.getElementById('reset-btn');
+            const noteDiv = document.getElementById('note');
             selectedBar.innerHTML = '';
             const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
             checkboxes.forEach(checkbox => {
@@ -496,9 +872,14 @@
                 resetBtn.textContent = 'Reset All';
             }
             submitBtn.disabled = checkboxes.length === 0;
-            
             const selectedSymptoms = Array.from(checkboxes).map(cb => cb.value);
             localStorage.setItem('selectedSymptoms', JSON.stringify(selectedSymptoms));
+            console.log('Updated Selected Symptoms:', selectedSymptoms);
+            if (checkboxes.length < 3) {
+                noteDiv.style.display = 'block';
+            } else {
+                noteDiv.style.display = 'none';
+            }
         }
 
         function removeSymptom(event, value) {
@@ -518,27 +899,45 @@
             updateSelected();
         }
 
-        window.onload = function() {
-            if (performance.navigation.type === 1) {
-                localStorage.removeItem('selectedSymptoms');
-                localStorage.removeItem('scrollPosition');
-            }
-            const storedSymptoms = JSON.parse(localStorage.getItem('selectedSymptoms')) || [];
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = storedSymptoms.includes(checkbox.value);
-            });
-            updateSelected();
-        };
-
-        document.getElementById('symptom-form').onsubmit = function() {
+        document.getElementById('symptom-form').onsubmit = function(event) {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
             const selectedSymptoms = Array.from(checkboxes).map(cb => cb.value);
             localStorage.setItem('selectedSymptoms', JSON.stringify(selectedSymptoms));
             localStorage.setItem('scrollPosition', window.scrollY);
+            console.log('Symptoms on Submit:', selectedSymptoms);
+
+            if (checkboxes.length < 3) {
+                event.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const noteDiv = document.getElementById('note');
+                noteDiv.classList.add('blink');
+                setTimeout(() => {
+                    noteDiv.classList.remove('blink');
+                }, 3000);
+                return false;
+            } else {
+                event.preventDefault();
+                const analyzingOverlay = document.getElementById('analyzing-overlay');
+                const analyzingBox = document.getElementById('analyzing-box');
+                analyzingOverlay.classList.add('active');
+                analyzingBox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                const delay = Math.floor(Math.random() * 2000) + 1000;
+                console.log(`Animation delay: ${delay}ms`);
+                setTimeout(() => {
+                    document.getElementById('symptom-form').submit();
+                }, delay);
+            }
         };
 
-        // Scroll-to-top functionality
+        document.getElementById('feedback-form').onsubmit = function(event) {
+            event.preventDefault();
+            const form = document.getElementById('feedback-form');
+            form.submit();
+            closeFeedback();
+        };
+
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -551,6 +950,25 @@
                 scrollButton.classList.remove('visible');
             }
         });
+
+        function toggleFeedback(event) {
+            event.stopPropagation();
+            const feedbackPopup = document.getElementById('feedback-popup');
+            const overlay = document.getElementById('overlay');
+            if (feedbackPopup.classList.contains('active')) {
+                closeFeedback();
+            } else {
+                feedbackPopup.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function closeFeedback() {
+            const feedbackPopup = document.getElementById('feedback-popup');
+            const overlay = document.getElementById('overlay');
+            feedbackPopup.classList.remove('active');
+            overlay.classList.remove('active');
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92d0531789f87fcd',t:'MTc0NDEwMDIwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92d076b4cdbc3a2a',t:'MTc0NDEwMTY2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
