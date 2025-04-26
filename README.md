@@ -173,7 +173,3 @@ MIT License - Free for personal and commercial use
 👉 `git clone https://github.com/yourusername/Al-Symptom-Checker.git`  
 
 ---
-
-# 🎯 Empowering Users with AI-Driven Health Insights!
-
----
