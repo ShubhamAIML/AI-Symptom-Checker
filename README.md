@@ -1,6 +1,6 @@
 # 🚀 AI: Intelligent Symptom Checker
 
-**Predict diseases with AI-powered accuracy!** 🌐 [Try it now](https://ai-symptom-checker-j93h.onrender.com/)
+**Predict diseases with AI-powered accuracy!** 🌐 [Try it now](https://ai-symptom-checker-mji4.onrender.com/)
 
 ---
 
