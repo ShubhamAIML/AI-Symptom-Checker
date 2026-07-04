@@ -30,7 +30,7 @@ six==1.17.0
 sympy==1.13.1
 threadpoolctl==3.6.0
 torch==2.9.0
-torchvision==0.21.0
+torchvision==0.24.0
 typing_extensions==4.13.0
 tzdata==2025.2
 urllib3==2.3.0
